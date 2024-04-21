@@ -48,6 +48,13 @@ FlashAttention requires many times fewer HBM accesses than standard implementati
 - 增加`N`维度的并行
 - 更改`i`和`j`的循环次序
 - 减少非矩阵乘法的次数
+### 方法论
+- **并行度更高+warp通信更高效**
+- 增加`N`维度的并行：对于长序列，block的总数量依旧能打满所有的SM
+- 更改`i`和`j`的循环次序：最直观的效果就是写output的时候只需要在内循环结束之后写一次了
+- 减少非矩阵乘法的次数：把scaling放到写output的时候，在内循环尽可能都是矩阵操作
+- warp层面：对于output的一行，需要遍历KV的所有行，所以如果是对KV进行切割，在计算output一行的时候，需要进行跨warp的通信；而对Q进行划分，就可以直接warp内通信，效率更高
+![](imgs/flash-attention-2-warp.png)
 ### FLOPS
 - 不变
 ### Space
